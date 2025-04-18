@@ -25,7 +25,7 @@ def load_data_deep_crack(image_dir, mask_dir, train_test_lengths, limit_im_nr = 
     # augmentations
     train_trsfs = Compose([
                        #augmentations.transforms.PadIfNeeded(min_height = 288, min_width = 288, value = 1, border_mode = 0),
-                       #augmentations.crops.transforms.RandomCrop(256, 256),
+                       augmentations.crops.transforms.RandomCrop(384, 544),
                        augmentations.geometric.Rotate(limit = 15, p = 1, border_mode = 0),
                        augmentations.transforms.Normalize(mean = 0.5, std = 0.25),
                        ToTensorV2()
@@ -47,8 +47,8 @@ def load_data_deep_crack(image_dir, mask_dir, train_test_lengths, limit_im_nr = 
     )
 
 
-    train_dl = data.DataLoader(train_dataset, batch_size = 16, shuffle = True)
-    val_dl = data.DataLoader(val_dataset, batch_size = 16, shuffle = False)
+    train_dl = data.DataLoader(train_dataset, batch_size = 4, shuffle = True)
+    val_dl = data.DataLoader(val_dataset, batch_size = 4, shuffle = False)
     return train_dl, val_dl, train_dataset, val_dataset
 
 class DeepCrackDataset(data.Dataset):
