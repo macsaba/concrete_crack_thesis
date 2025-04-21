@@ -10,7 +10,7 @@ def train(model, loss_fn, optim, train_ds, val_ds, num_epochs = 1, accum_scale =
     # initialise metric calculations
     conf_mtx = torch.zeros((2, 2)) # initial count of confusion matrix entries is 0
     conf_mtx_calc = ConfusionMatrix(task = 'binary')
-    best_val_score = 0
+    best_val_loss = 1
     for epoch_idx in range(num_epochs):
         model.train()
         train_loss_batch = 0
@@ -66,10 +66,10 @@ def train(model, loss_fn, optim, train_ds, val_ds, num_epochs = 1, accum_scale =
         print('Validation loss: ', val_loss[-1])
 
         # save best parameters
-        if val_dice_idcs[-1] > best_val_score:
+        if val_loss[-1] < best_val_loss:
             best_model_wts.clear()  # clear previous weights
             best_model_wts.update(model.state_dict())  # copy new best weights
-            best_val_score = val_dice_idcs[-1]
+            best_val_loss = val_loss[-1]
 
 
 
