@@ -1,0 +1,23 @@
+name: cenv  # You can rename this to whatever you want
+channels:
+  - defaults
+  - conda-forge
+
+dependencies:
+  - python=3.10  # or your preferred version
+  - numpy
+  - ipykernel
+  - scipy
+  - matplotlib
+  - pandas
+  - tabulate
+  - seaborn
+  - requests
+  - pip
+  - pip:
+      - --extra-index-url https://download.pytorch.org/whl/cu118
+      - torch
+      - torchvision
+      - torchmetrics
+      - imbalanced-learn
+      - albumentations
