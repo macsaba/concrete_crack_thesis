@@ -13,8 +13,8 @@ def train(model, loss_fn, optim, train_ds, val_ds, num_epochs = 1, accum_scale =
     best_val_loss = 1
     for epoch_idx in range(num_epochs):
         model.train()
-        train_loss_batch = 0
-        val_loss_batch = 0
+        train_loss_batch = 0.0
+        val_loss_batch = .0
         for i, batch in enumerate(train_ds):
             # dataloader returns dict with batched values
             batch = {input_type: input.to(device) for input_type, input in batch.items()}
@@ -22,9 +22,11 @@ def train(model, loss_fn, optim, train_ds, val_ds, num_epochs = 1, accum_scale =
 
             mask = batch['mask']
             loss = loss_fn(mask, pred)
-            train_loss_batch = train_loss_batch + loss
-            # gradients will be summed, so loss should be scaled to maintain learning rate
+            
+            # gradients will be summed, so loss should be scaled to maintain learning rate            
             (loss / accum_scale).backward()
+            
+            train_loss_batch = train_loss_batch + loss.item()
 
             conf_mtx = conf_mtx + conf_mtx_calc(pred.to('cpu'), mask.to('cpu')) # update confusion matrix
 
@@ -42,7 +44,7 @@ def train(model, loss_fn, optim, train_ds, val_ds, num_epochs = 1, accum_scale =
         epoch_dice_idcs.append(dice_idx.item())
 
         # compute train loss:
-        train_loss.append(train_loss_batch.to('cpu').item()/len(train_ds))
+        train_loss.append(train_loss_batch/len(train_ds))
 
         print('Train loss: ', train_loss[-1])
         model.eval()
@@ -52,7 +54,8 @@ def train(model, loss_fn, optim, train_ds, val_ds, num_epochs = 1, accum_scale =
                 pred = model(batch['image'])
 
             mask = batch['mask']
-            val_loss_batch = val_loss_batch + loss_fn(mask, pred)
+            val_loss_local = loss_fn(mask, pred)
+            val_loss_batch = val_loss_batch + val_loss_local.item()
             
             _ = conf_mtx_calc(pred.to('cpu'), batch['mask'].to('cpu'))
         tn, fp, fn, tp = conf_mtx_calc.compute().flatten()
@@ -60,7 +63,7 @@ def train(model, loss_fn, optim, train_ds, val_ds, num_epochs = 1, accum_scale =
         val_dice_idcs.append(dice_idx.item())
 
         # compute val loss:
-        val_loss.append(val_loss_batch.to('cpu').item()/len(val_ds))
+        val_loss.append(val_loss_batch/len(val_ds))
 
         print('Epoch ',epoch_idx + 1, '. finished.' )
         print('Validation loss: ', val_loss[-1])
