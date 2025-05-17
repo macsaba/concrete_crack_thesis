@@ -3,8 +3,9 @@ import torch
 from torchmetrics import ConfusionMatrix
 import matplotlib.pyplot as plt
 from utils import save_model_files
+import time
 
-def train(model, loss_fn, optim, train_ds, val_ds, num_epochs = 1, accum_scale = 1, dice_idcs = [], epoch_dice_idcs = [], val_dice_idcs = [], train_loss = [], val_loss = [],  best_model_wts = {}, save_path = '', n_epoch_save = 5):
+def train(model, loss_fn, optim, train_ds, val_ds, num_epochs = 1, accum_scale = 1, dice_idcs = [], epoch_dice_idcs = [], val_dice_idcs = [], train_loss = [], val_loss = [], epoch_durations=[],  best_model_wts = {}, save_path = '', n_epoch_save = 5):
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     model = model.to(device)
 
@@ -13,6 +14,7 @@ def train(model, loss_fn, optim, train_ds, val_ds, num_epochs = 1, accum_scale =
     conf_mtx_calc = ConfusionMatrix(task = 'binary')
     best_val_loss = 1
     for epoch_idx in range(num_epochs):
+        epoch_start = time.time()
         model.train()
         train_loss_batch = 0.0
         val_loss_batch = .0
@@ -78,7 +80,12 @@ def train(model, loss_fn, optim, train_ds, val_ds, num_epochs = 1, accum_scale =
         # do checkpoints
         if ((epoch_idx + 1) % n_epoch_save) == 0 and save_path:
             print('save files')
-            save_model_files(save_path, {'model_state_epoch_'+str(epoch_idx + 1) : model.state_dict()},  {'dice_idcs':dice_idcs, 'epoch_dice_idcs':epoch_dice_idcs,'val_dice_idcs':val_dice_idcs,'train_loss':train_loss, 'val_loss':val_loss}, override=True)
+            save_model_files(save_path, {'model_state_epoch_'+str(epoch_idx + 1) : model.state_dict()},  {'dice_idcs':dice_idcs, 'epoch_dice_idcs':epoch_dice_idcs,'val_dice_idcs':val_dice_idcs,'train_loss':train_loss, 'val_loss':val_loss, 'epoch_durations':epoch_durations}, override=True)
+
+            # ---- Epoch timing log ----
+        epoch_duration = time.time() - epoch_start
+        print(f"Epoch {epoch_idx + 1}/{num_epochs} completed in {epoch_duration:.2f} seconds")
+        epoch_durations.append(epoch_duration)
 
 
 
