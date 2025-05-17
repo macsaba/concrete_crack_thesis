@@ -86,10 +86,10 @@ class UNetResNet34(nn.Module):
                  base_channel_size = 64
                  ):
         # TODO: 
-        # resnet első rétege már felez
         # mi tanul és mi nem
         # normalizálás a resnet-nek megfelelően
         # mi lesz a nem 2 hatvány képekkel
+        # batch norm-ok kikapcsolása
         depth = 5
         super().__init__()
 
@@ -145,3 +145,35 @@ class UNetResNet34(nn.Module):
         x = self.segmentation_layer(x)
 
         return self.activation(x)
+    
+    # freeze encoder layers for training
+    # if there are no specific layers, freze all
+    def freeze_encoder_layers(self, layers_to_freeze=None):
+        if layers_to_freeze is None:
+            # Freeze all encoder parameters
+            for param in self.encoder.parameters():
+                param.requires_grad = False
+        else:
+            # Freeze only selected layers by name
+            for name, module in self.encoder.named_children():
+                if name in layers_to_freeze:
+                    for param in module.parameters():
+                        param.requires_grad = False
+    
+    # unfreeze encoder layers for training
+    # if there are no specific layers, unfreze all
+    def unfreeze_encoder_layers(self, layers_to_unfreeze=None):
+        if layers_to_unfreeze is None:
+            # Unfreeze all encoder parameters
+            for param in self.encoder.parameters():
+                param.requires_grad = True
+        else:
+            # Unfreeze only selected layers
+            for name, module in self.encoder.named_children():
+                if name in layers_to_unfreeze:
+                    for param in module.parameters():
+                        param.requires_grad = True
+
+    def print_trainable_layers(self):
+        for name, param in self.named_parameters():
+            print(f"{name}: requires_grad={param.requires_grad}")
