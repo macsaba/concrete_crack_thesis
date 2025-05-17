@@ -33,10 +33,10 @@ def load_data_deep_crack(image_dir, mask_dir, train_test_lengths, limit_im_nr = 
                        #augmentations.transforms.PadIfNeeded(min_height = 288, min_width = 288, value = 1, border_mode = 0),
                        RandomCrop(384, 544),
                        Rotate(limit = 15, p = 1, border_mode = 0),
-                       Normalize(mean = 0.5, std = 0.25),
+                       Normalize(mean = (0.485, 0.456, 0.406), std = (0.229, 0.224, 0.225)),
                        ToTensorV2()
     ])
-    val_trsfs = Compose([Normalize(mean = 0.5, std = 0.25), ToTensorV2()])
+    val_trsfs = Compose([Normalize(mean = (0.485, 0.456, 0.406), std = (0.229, 0.224, 0.225)), ToTensorV2()])
 
     train_dataset = DeepCrackDataset(
     image_dir=image_dir,
