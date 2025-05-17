@@ -34,12 +34,12 @@ def log_training_result(csv_path, new_row):
     # Save it back to CSV
     df.to_csv(csv_path, index=False)
 
-def save_model_files(files_path, model_weights, np_arrays):
-    if os.path.exists(files_path):
+def save_model_files(files_path, model_weights, np_arrays, override = False):
+    if os.path.exists(files_path) and not override:
         raise FileExistsError('Files path already exists.')
     else:
         # Create the directory
-        os.mkdir(files_path)
+        os.makedirs(files_path, exist_ok=True)
         for key, value in model_weights.items():
             torch.save(value, files_path + key + '.pth')
         for key, value in np_arrays.items():

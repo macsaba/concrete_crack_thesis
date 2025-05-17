@@ -86,10 +86,10 @@ class UNetResNet34(nn.Module):
                  base_channel_size = 64
                  ):
         # TODO: 
-        # mi tanul és mi nem
         # normalizálás a resnet-nek megfelelően
         # mi lesz a nem 2 hatvány képekkel
-        # batch norm-ok kikapcsolása
+        # batch norm-ok kikapcsolása érdemes lehet a kis batch méret miatt
+        
         depth = 5
         super().__init__()
 

@@ -2,8 +2,9 @@
 import torch
 from torchmetrics import ConfusionMatrix
 import matplotlib.pyplot as plt
+from utils import save_model_files
 
-def train(model, loss_fn, optim, train_ds, val_ds, num_epochs = 1, accum_scale = 1, dice_idcs = [], epoch_dice_idcs = [], val_dice_idcs = [], train_loss = [], val_loss = [],  best_model_wts = {}):
+def train(model, loss_fn, optim, train_ds, val_ds, num_epochs = 1, accum_scale = 1, dice_idcs = [], epoch_dice_idcs = [], val_dice_idcs = [], train_loss = [], val_loss = [],  best_model_wts = {}, save_path = '', n_epoch_save = 5):
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     model = model.to(device)
 
@@ -73,6 +74,11 @@ def train(model, loss_fn, optim, train_ds, val_ds, num_epochs = 1, accum_scale =
             best_model_wts.clear()  # clear previous weights
             best_model_wts.update(model.state_dict())  # copy new best weights
             best_val_loss = val_loss[-1]
+        
+        # do checkpoints
+        if ((epoch_idx + 1) % n_epoch_save) == 0 and save_path:
+            print('save files')
+            save_model_files(save_path, {'model_state_epoch_'+str(epoch_idx + 1) : model.state_dict()},  {'dice_idcs':dice_idcs, 'epoch_dice_idcs':epoch_dice_idcs,'val_dice_idcs':val_dice_idcs,'train_loss':train_loss, 'val_loss':val_loss}, override=True)
 
 
 
