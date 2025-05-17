@@ -3,5 +3,5 @@ venv*/
 *.egg-info
 # Ignore model files
 saved_models
-
+temp
 __pycache__

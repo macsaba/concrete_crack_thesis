@@ -1,5 +1,11 @@
-from albumentations import augmentations, Compose
-from albumentations.pytorch.transforms import ToTensorV2
+#from albumentations.pytorch.transforms import ToTensorV2
+from albumentations import (
+    RandomCrop,
+    Rotate,
+    Normalize,
+    Compose,
+    ToTensorV2
+)
 import numpy as np
 from torch.utils import data
 from torch.utils.data import random_split
@@ -25,12 +31,12 @@ def load_data_deep_crack(image_dir, mask_dir, train_test_lengths, limit_im_nr = 
     # augmentations
     train_trsfs = Compose([
                        #augmentations.transforms.PadIfNeeded(min_height = 288, min_width = 288, value = 1, border_mode = 0),
-                       augmentations.crops.transforms.RandomCrop(384, 544),
-                       augmentations.geometric.Rotate(limit = 15, p = 1, border_mode = 0),
-                       augmentations.transforms.Normalize(mean = 0.5, std = 0.25),
+                       RandomCrop(384, 544),
+                       Rotate(limit = 15, p = 1, border_mode = 0),
+                       Normalize(mean = 0.5, std = 0.25),
                        ToTensorV2()
     ])
-    val_trsfs = Compose([augmentations.transforms.Normalize(mean = 0.5, std = 0.25), ToTensorV2()])
+    val_trsfs = Compose([Normalize(mean = 0.5, std = 0.25), ToTensorV2()])
 
     train_dataset = DeepCrackDataset(
     image_dir=image_dir,
