@@ -19,7 +19,7 @@ def load_data_deep_crack(image_dir, mask_dir, train_test_lengths, limit_im_nr = 
     # Get image list from the given train folder
     images_list = sorted(os.listdir(image_dir))
     # do random train test cut on this list
-    train_images_list, val_images_list = random_split(images_list, train_test_lengths)
+    train_images_list, val_images_list = random_split(images_list, train_test_lengths, generator=torch.Generator().manual_seed(42))
 
     print(f'This gives us {len(train_images_list)} train and {len(val_images_list)} validation samples.')
 
