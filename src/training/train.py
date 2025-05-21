@@ -7,7 +7,11 @@ import time
 
 def train(model, loss_fn, optim, train_ds, val_ds, num_epochs = 1, accum_scale = 1, dice_idcs = [], epoch_dice_idcs = [], val_dice_idcs = [], train_loss = [], val_loss = [], epoch_durations=[],  best_model_wts = {}, save_path = '', n_epoch_save = 5):
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    print('In train() the selected device is: ' + device)
     model = model.to(device)
+    times_debug = []
+    torch.backends.cudnn.benchmark = True
+
 
     # initialise metric calculations
     conf_mtx = torch.zeros((2, 2)) # initial count of confusion matrix entries is 0
@@ -18,12 +22,13 @@ def train(model, loss_fn, optim, train_ds, val_ds, num_epochs = 1, accum_scale =
         model.train()
         train_loss_batch = 0.0
         val_loss_batch = .0
+        times_debug.append(epoch_start-time.time())
         for i, batch in enumerate(train_ds):
             # dataloader returns dict with batched values
-            batch = {input_type: input.to(device) for input_type, input in batch.items()}
+            batch = {input_type: input.to(device, non_blocking=True) for input_type, input in batch.items()}
             pred = model(batch['image'])
 
-            mask = batch['mask']
+            mask = batch['mask'].to(device)
             loss = loss_fn(mask, pred)
             
             # gradients will be summed, so loss should be scaled to maintain learning rate            
@@ -31,16 +36,19 @@ def train(model, loss_fn, optim, train_ds, val_ds, num_epochs = 1, accum_scale =
             
             train_loss_batch = train_loss_batch + loss.item()
 
-            conf_mtx = conf_mtx + conf_mtx_calc(pred.to('cpu'), mask.to('cpu')) # update confusion matrix
-
+            #conf_mtx = conf_mtx + conf_mtx_calc(pred.to('cpu'), mask.to('cpu')) # update confusion matrix
+            optim.step()
+            optim.zero_grad()
             # update metrics and step with optimizer at the end of each real batch
-            if (i + 1) % accum_scale == 0 or i + 1 == len(train_ds):
-                tn, fp, fn, tp = conf_mtx.flatten()
-                dice_idx = (2 * tp + 1) / (2 * tp + fp + fn + 1)
-                dice_idcs.append(dice_idx.item())
-                conf_mtx = torch.zeros((2, 2))
-                optim.step()
-                optim.zero_grad()
+            #if (i + 1) % accum_scale == 0 or i + 1 == len(train_ds):
+                #tn, fp, fn, tp = conf_mtx.flatten()
+                #dice_idx = (2 * tp + 1) / (2 * tp + fp + fn + 1)
+                #dice_idcs.append(dice_idx.item())
+                #conf_mtx = torch.zeros((2, 2))
+            #    optim.step()
+            #    optim.zero_grad()
+        times_debug.append(epoch_start-time.time())
+        print(epoch_start-time.time())
         # compute epoch scores
         tn, fp, fn, tp = conf_mtx_calc.compute().flatten()
         dice_idx = (2 * tp + 1) / (2 * tp + fp + fn + 1)
@@ -56,14 +64,14 @@ def train(model, loss_fn, optim, train_ds, val_ds, num_epochs = 1, accum_scale =
             with torch.no_grad():
                 pred = model(batch['image'])
 
-            mask = batch['mask']
+            mask = batch['mask'].to(device)
             val_loss_local = loss_fn(mask, pred)
             val_loss_batch = val_loss_batch + val_loss_local.item()
             
-            _ = conf_mtx_calc(pred.to('cpu'), batch['mask'].to('cpu'))
-        tn, fp, fn, tp = conf_mtx_calc.compute().flatten()
-        dice_idx = (2 * tp + 1) / (2 * tp + fp + fn + 1)
-        val_dice_idcs.append(dice_idx.item())
+            #_ = conf_mtx_calc(pred.to('cpu'), batch['mask'].to('cpu'))
+        #tn, fp, fn, tp = conf_mtx_calc.compute().flatten()
+        #dice_idx = (2 * tp + 1) / (2 * tp + fp + fn + 1)
+        #val_dice_idcs.append(dice_idx.item())
 
         # compute val loss:
         val_loss.append(val_loss_batch/len(val_ds))
@@ -86,26 +94,3 @@ def train(model, loss_fn, optim, train_ds, val_ds, num_epochs = 1, accum_scale =
         epoch_duration = time.time() - epoch_start
         print(f"Epoch {epoch_idx + 1}/{num_epochs} completed in {epoch_duration:.2f} seconds")
         epoch_durations.append(epoch_duration)
-
-
-
-def validate(model, loss_fn, optim, train_ds, val_ds, num_epochs = 1, accum_scale = 1):
-    device = 'cuda' if torch.cuda.is_available() else 'cpu'
-    model = model.to(device)
-    conf_mtx_calc = ConfusionMatrix(task = 'binary')
-    dice_idcs, epoch_dice_idcs, val_dice_idcs = [], [], []
-
-    model.eval()
-    for batch in val_ds:
-        batch = {input_type: input.to(device) for input_type, input in batch.items()}
-        with torch.no_grad():
-            pred = model(batch['image'])
-            _ = conf_mtx_calc(pred.to('cpu'), batch['mask'].to('cpu'))
-    tn, fp, fn, tp = conf_mtx_calc.compute().flatten()
-    dice_idx = (2 * tp + 1) / (2 * tp + fp + fn + 1)
-    val_dice_idcs.append(dice_idx.item())
-
-    return dice_idcs, epoch_dice_idcs, val_dice_idcs
-
-def test2(x):
-    x[1] = 3

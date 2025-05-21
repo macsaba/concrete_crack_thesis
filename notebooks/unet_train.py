@@ -52,8 +52,8 @@ train_dl, val_dl, train_dataset, val_dataset = load_data_deep_crack(train_image_
 
 model = UNet(   img_channels = 3,
                 mask_channels = 1,
-                base_channel_size = 64,
-                depth=4)  
+                base_channel_size = 16,
+                depth=5)  
 loss = DiceLoss()
 optimizer = optim.Adam(params = model.parameters(), lr = 1e-3)
 
@@ -65,17 +65,17 @@ val_loss = []
 epoch_durations = []
 best_model_wts = {}
 
-log_training_result('../saved_models/training_log_2.csv', {
-    "timestamp": pd.Timestamp.now(),
-    "weights_file": "unet_2/",
-    "epochs": 100,
-    "learning_rate": 0.001,
-    "batch_size": 4,
-    "accum_scale": 4,
-    "depth": 4,
-    "base_channel_size": 64,    
-    "comment": "",
-    "augmentation": "rotate+randomCrop"
-})
+#log_training_result('../saved_models/training_log_2.csv', {
+#    "timestamp": pd.Timestamp.now(),
+#   "weights_file": "unet_3/",
+#    "epochs": 100,
+#    "learning_rate": 0.001,
+#    "batch_size": 4,
+#    "accum_scale": 4,
+#    "depth": 3,
+#    "base_channel_size": 64,    
+#    "comment": "",
+#    "augmentation": "rotate+randomCrop"
+#})
 
-train(model, loss, optimizer, train_dl, val_dl, num_epochs = 100, accum_scale = 4, dice_idcs = dice_idcs, epoch_dice_idcs = epoch_dice_idcs, val_dice_idcs = val_dice_idcs, best_model_wts = best_model_wts, train_loss=train_loss, val_loss=val_loss, epoch_durations=epoch_durations, save_path='../saved_models/unet_2/', n_epoch_save=3)
+train(model, loss, optimizer, train_dl, val_dl, num_epochs = 100, accum_scale = 4, dice_idcs = dice_idcs, epoch_dice_idcs = epoch_dice_idcs, val_dice_idcs = val_dice_idcs, best_model_wts = best_model_wts, train_loss=train_loss, val_loss=val_loss, epoch_durations=epoch_durations, save_path='../saved_models/test/', n_epoch_save=3)
