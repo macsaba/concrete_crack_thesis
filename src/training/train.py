@@ -80,7 +80,7 @@ def train(model, loss_fn, optim, train_ds, val_ds, num_epochs = 1, accum_scale =
         # do checkpoints
         if (((epoch_idx + 1) % n_epoch_save) == 0 or (epoch_idx+1) == num_epochs) and save_path:
             print('save files')
-            save_model_files(save_path, {'model_state_epoch_'+str(epoch_idx + 1) : model.state_dict()},  {'dice_idcs':dice_idcs, 'epoch_dice_idcs':epoch_dice_idcs,'val_dice_idcs':val_dice_idcs,'train_loss':train_loss, 'val_loss':val_loss, 'epoch_durations':epoch_durations}, override=True)
+            save_model_files(save_path, {'model_state_epoch_'+str(epoch_idx + 1) : model.state_dict(), 'best_model_wts':best_model_wts},  {'dice_idcs':dice_idcs, 'epoch_dice_idcs':epoch_dice_idcs,'val_dice_idcs':val_dice_idcs,'train_loss':train_loss, 'val_loss':val_loss, 'epoch_durations':epoch_durations}, override=True)
 
             # ---- Epoch timing log ----
         epoch_duration = time.time() - epoch_start
