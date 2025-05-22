@@ -58,11 +58,20 @@ def load_data_deep_crack(image_dir, mask_dir, train_test_lengths, limit_im_nr = 
     return train_dl, val_dl, train_dataset, val_dataset
 
 class DeepCrackDataset(data.Dataset):
-    def __init__(self, image_dir, mask_dir, image_list, transform=None):
+    def __init__(self, image_dir, mask_dir, image_list = None, transform=None):
         self.image_dir = image_dir
         self.mask_dir = mask_dir
         self.transform = transform
-        self.images = image_list
+        if image_list:
+            # if we have an image list set it
+            self.images = image_list
+        else:
+            # else set all image as image list
+            self.images = sorted(os.listdir(image_dir))
+        if transform:
+            self.transform = transform
+        else:
+            self.transform = Compose(ToTensorV2())
 
     def __len__(self):
         return len(self.images)
@@ -71,9 +80,13 @@ class DeepCrackDataset(data.Dataset):
         img_path = os.path.join(self.image_dir, self.images[idx])
         mask_path = os.path.join(self.mask_dir, self.images[idx].replace('.jpg', '.png'))
 
-
         img = np.array(Image.open(img_path).convert("RGB"))
         mask = np.array(Image.open(mask_path).convert("L"))  # grayscale mask
+
+        # Rotate if orientation is wrong (width > height)
+        if img.shape[0] > img.shape[1]:  # shape = (H, W, C)
+            img = np.rot90(img)
+            mask = np.rot90(mask)
 
         bundle = dict(image = img, mask = mask)
         if self.transform:
