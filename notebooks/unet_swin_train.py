@@ -66,19 +66,30 @@ epoch_durations = []
 best_model_wts = {}
 model.freeze_encoder_layers()
 
+# SWIN 2
+
+dice_idcs = list(np.load('../saved_models/swin_1/dice_idcs.npy'))
+epoch_dice_idcs = list(np.load('../saved_models/swin_1/epoch_dice_idcs.npy'))
+val_dice_idcs = list(np.load('../saved_models/swin_1/val_dice_idcs.npy'))
+train_loss = list(np.load('../saved_models/swin_1/train_loss.npy'))
+val_loss = list(np.load('../saved_models/swin_1/val_loss.npy'))
+epoch_durations = list(np.load('../saved_models/swin_1/epoch_durations.npy'))
+best_model_wts = {}
+model.load_state_dict(torch.load('../saved_models/swin_1/model_state_epoch_99.pth', weights_only=True))
+
 log_training_result('../saved_models/training_log_2.csv', {
     "timestamp": pd.Timestamp.now(),
-    "weights_file": "swin_1/",
-    "epochs": 200,
+    "weights_file": "swin_2/",
+    "epochs": 100,
     "learning_rate": 0.001,
     "batch_size": 4,
     "accum_scale": 4,
-    "comment": "",
+    "comment": "Continue of swin_1",
     "augmentation": "rotate+randomCrop"
 })
 
 train(model, loss, optimizer, train_dl, val_dl, 
-        num_epochs = 200, 
+        num_epochs = 100, 
         accum_scale = 4, 
         dice_idcs = dice_idcs, 
         epoch_dice_idcs = epoch_dice_idcs, 
@@ -87,7 +98,46 @@ train(model, loss, optimizer, train_dl, val_dl,
         train_loss=train_loss, 
         val_loss=val_loss, 
         epoch_durations=epoch_durations,
-        save_path='../saved_models/swin_1/',
+        save_path='../saved_models/swin_2/',
         n_epoch_save=3)
 
 
+
+# SWIN 3
+model = UNetSwin(   img_channels = 3,
+                mask_channels = 1,
+                base_channel_size = 64)  
+
+loss = DiceLoss()
+optimizer = optim.Adam(params = model.parameters(), lr = 1e-4)
+log_training_result('../saved_models/training_log_2.csv', {
+    "timestamp": pd.Timestamp.now(),
+    "weights_file": "swin_3/",
+    "epochs": 100,
+    "learning_rate": 0.0001,
+    "batch_size": 4,
+    "accum_scale": 4,
+    "comment": "Continue of swin_1, but different lr.",
+    "augmentation": "rotate+randomCrop"
+})
+dice_idcs = list(np.load('../saved_models/swin_1/dice_idcs.npy'))
+epoch_dice_idcs = list(np.load('../saved_models/swin_1/epoch_dice_idcs.npy'))
+val_dice_idcs = list(np.load('../saved_models/swin_1/val_dice_idcs.npy'))
+train_loss = list(np.load('../saved_models/swin_1/train_loss.npy'))
+val_loss = list(np.load('../saved_models/swin_1/val_loss.npy'))
+epoch_durations = list(np.load('../saved_models/swin_1/epoch_durations.npy'))
+best_model_wts = {}
+model.load_state_dict(torch.load('../saved_models/swin_1/model_state_epoch_99.pth', weights_only=True))
+
+train(model, loss, optimizer, train_dl, val_dl, 
+        num_epochs = 100, 
+        accum_scale = 4, 
+        dice_idcs = dice_idcs, 
+        epoch_dice_idcs = epoch_dice_idcs, 
+        val_dice_idcs = val_dice_idcs, 
+        best_model_wts = best_model_wts, 
+        train_loss=train_loss, 
+        val_loss=val_loss, 
+        epoch_durations=epoch_durations,
+        save_path='../saved_models/swin_3/',
+        n_epoch_save=3)
