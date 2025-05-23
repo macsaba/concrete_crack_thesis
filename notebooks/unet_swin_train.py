@@ -41,6 +41,7 @@ cuda.is_available()
 # NOTE: when referring to a CUDA device, torch will only know about visible devices
 #       so while currently we will be using gpu05
 #       this will be device `cuda:0`
+
 data_source ='../../DeepCrack/dataset/DeepCrack'
 train_image_dir = data_source + '/train_img'
 train_mask_dir = data_source + '/train_lab'
@@ -52,8 +53,9 @@ train_dl, val_dl, train_dataset, val_dataset = load_data_deep_crack(train_image_
 model = UNetSwin(   img_channels = 3,
                 mask_channels = 1,
                 base_channel_size = 64)  
+
 loss = DiceLoss()
-optimizer = optim.Adam(params = model.parameters(), lr = 5*1e-4)
+optimizer = optim.Adam(params = model.parameters(), lr = 1e-3)
 
 dice_idcs = []
 epoch_dice_idcs = []
@@ -64,4 +66,28 @@ epoch_durations = []
 best_model_wts = {}
 model.freeze_encoder_layers()
 
-train(model, loss, optimizer, train_dl, val_dl, num_epochs = 100, accum_scale = 4, dice_idcs = dice_idcs, epoch_dice_idcs = epoch_dice_idcs, val_dice_idcs = val_dice_idcs, best_model_wts = best_model_wts, train_loss=train_loss, val_loss=val_loss, epoch_durations=epoch_durations, save_path='../saved_models/swin_1/', n_epoch_save=3)
+log_training_result('../saved_models/training_log_2.csv', {
+    "timestamp": pd.Timestamp.now(),
+    "weights_file": "swin_1/",
+    "epochs": 200,
+    "learning_rate": 0.001,
+    "batch_size": 4,
+    "accum_scale": 4,
+    "comment": "",
+    "augmentation": "rotate+randomCrop"
+})
+
+train(model, loss, optimizer, train_dl, val_dl, 
+        num_epochs = 200, 
+        accum_scale = 4, 
+        dice_idcs = dice_idcs, 
+        epoch_dice_idcs = epoch_dice_idcs, 
+        val_dice_idcs = val_dice_idcs, 
+        best_model_wts = best_model_wts, 
+        train_loss=train_loss, 
+        val_loss=val_loss, 
+        epoch_durations=epoch_durations,
+        save_path='../saved_models/swin_1/',
+        n_epoch_save=3)
+
+
