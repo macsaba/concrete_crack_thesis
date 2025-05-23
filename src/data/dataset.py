@@ -93,3 +93,13 @@ class DeepCrackDataset(data.Dataset):
             bundle = self.transform(**bundle)
             bundle['mask'] = torch.div(bundle['mask'].unsqueeze(0), 255)
         return bundle
+    
+    def get_image_name(self, idx):
+        return self.images[idx]
+    
+    def get_item_by_name(self, name):
+        try:
+            idx = self.images.index(name)
+        except ValueError:
+            raise KeyError(f"Image '{name}' not found in dataset.")
+        return self[idx]

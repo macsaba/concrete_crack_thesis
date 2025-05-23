@@ -34,6 +34,7 @@ def log_training_result(csv_path, new_row):
     # Save it back to CSV
     df.to_csv(csv_path, index=False)
 
+# save the results of the training
 def save_model_files(files_path, model_weights, np_arrays, override = False):
     if os.path.exists(files_path) and not override:
         raise FileExistsError('Files path already exists.')
@@ -45,3 +46,16 @@ def save_model_files(files_path, model_weights, np_arrays, override = False):
         for key, value in np_arrays.items():
             value_np = np.array(value)
             np.save(files_path + key + '.npy', value_np)
+
+# generates latex table from pandas dataset            
+# e.g. generate_latex_table(results_table_log_reg, './tables/table1.tex')
+def generate_latex_table(dataset, name):
+    latex_output = dataset.to_latex(index=False, column_format='|' + 'c|'*results_table_log_reg.shape[1], float_format="%.3f")
+    latex_output = latex_output.replace("\\toprule", "\\hline\n\\rowcolor{gray!50}")
+    latex_output = latex_output.replace("\\midrule", "\\hline")
+    latex_output = latex_output.replace("\\bottomrule", "\\hline")
+    latex_output = '\\resizebox{\\textwidth}{!}{\n' + latex_output + '}'
+    #print(latex_output)
+    # Save tables to LaTeX files
+    with open(name, "w") as f:
+        f.write(latex_output)
