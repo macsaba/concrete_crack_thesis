@@ -103,3 +103,15 @@ class DeepCrackDataset(data.Dataset):
         except ValueError:
             raise KeyError(f"Image '{name}' not found in dataset.")
         return self[idx]
+    
+    def get_image_and_mask(self, index):
+        bundle = self[index]
+        image = np.transpose(np.array(bundle['image']), (1, 2, 0))
+        mask = np.transpose(np.array(bundle['mask']), (1, 2, 0))
+        return image, mask
+    
+    def get_image_and_mask_by_name(self, name):
+        bundle = self.get_item_by_name(name)
+        image = np.transpose(np.array(bundle['image']), (1, 2, 0))
+        mask = np.transpose(np.array(bundle['mask']), (1, 2, 0))
+        return image, mask
