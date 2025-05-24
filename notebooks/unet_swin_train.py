@@ -79,7 +79,7 @@ model.load_state_dict(torch.load('../saved_models/swin_1/model_state_epoch_99.pt
 
 log_training_result('../saved_models/training_log_2.csv', {
     "timestamp": pd.Timestamp.now(),
-    "weights_file": "swin_2/",
+    "weights_file": "swin_runtime_test_1_1/",
     "epochs": 100,
     "learning_rate": 0.001,
     "batch_size": 4,
@@ -88,18 +88,18 @@ log_training_result('../saved_models/training_log_2.csv', {
     "augmentation": "rotate+randomCrop"
 })
 
-train(model, loss, optimizer, train_dl, val_dl, 
-        num_epochs = 100, 
-        accum_scale = 4, 
-        dice_idcs = dice_idcs, 
-        epoch_dice_idcs = epoch_dice_idcs, 
-        val_dice_idcs = val_dice_idcs, 
-        best_model_wts = best_model_wts, 
-        train_loss=train_loss, 
-        val_loss=val_loss, 
-        epoch_durations=epoch_durations,
-        save_path='../saved_models/swin_2/',
-        n_epoch_save=3)
+#train(model, loss, optimizer, train_dl, val_dl, 
+        # num_epochs = 100, 
+        # accum_scale = 4, 
+        # dice_idcs = dice_idcs, 
+        # epoch_dice_idcs = epoch_dice_idcs, 
+        # val_dice_idcs = val_dice_idcs, 
+        # best_model_wts = best_model_wts, 
+        # train_loss=train_loss, 
+        # val_loss=val_loss, 
+        # epoch_durations=epoch_durations,
+        # save_path='../saved_models/swin_runtime_test_1/',
+        # n_epoch_save=3)
 
 
 
@@ -112,7 +112,7 @@ loss = DiceLoss()
 optimizer = optim.Adam(params = model.parameters(), lr = 1e-4)
 log_training_result('../saved_models/training_log_2.csv', {
     "timestamp": pd.Timestamp.now(),
-    "weights_file": "swin_3/",
+    "weights_file": "swin_4/",
     "epochs": 100,
     "learning_rate": 0.0001,
     "batch_size": 4,
@@ -128,6 +128,7 @@ val_loss = list(np.load('../saved_models/swin_1/val_loss.npy'))
 epoch_durations = list(np.load('../saved_models/swin_1/epoch_durations.npy'))
 best_model_wts = {}
 model.load_state_dict(torch.load('../saved_models/swin_1/model_state_epoch_99.pth', weights_only=True))
+model.freeze_encoder_layers()
 
 train(model, loss, optimizer, train_dl, val_dl, 
         num_epochs = 100, 
@@ -139,5 +140,5 @@ train(model, loss, optimizer, train_dl, val_dl,
         train_loss=train_loss, 
         val_loss=val_loss, 
         epoch_durations=epoch_durations,
-        save_path='../saved_models/swin_3/',
+        save_path='../saved_models/swin_4/',
         n_epoch_save=3)
