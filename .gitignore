@@ -5,3 +5,5 @@ venv*/
 saved_models
 temp
 __pycache__
+outputs/
+.vscode/

@@ -109,9 +109,9 @@ def plot_image_mask_prediction_grid(triplets, columns=3, scale=6, path=None):
 
         # Add titles only for the first row
         if i < columns:
-            ax_img.set_title('Image', fontsize=20 * scale / 10)
-            ax_mask.set_title('Ground Truth', fontsize=20 * scale / 10)
-            ax_pred.set_title('Prediction', fontsize=20 * scale / 10)
+            ax_img.set_title('Image', fontsize=20 * fig_W / 10)
+            ax_mask.set_title('Ground Truth', fontsize=20 * fig_W / 10)
+            ax_pred.set_title('Prediction', fontsize=20 * fig_W / 10)
 
     plt.tight_layout()
     if path:
