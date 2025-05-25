@@ -50,11 +50,24 @@ def save_model_files(files_path, model_weights, np_arrays, override = False):
 # generates latex table from pandas dataset            
 # e.g. generate_latex_table(results_table_log_reg, './tables/table1.tex')
 def generate_latex_table(dataset, name):
-    latex_output = dataset.to_latex(index=False, column_format='|' + 'c|'*results_table_log_reg.shape[1], float_format="%.3f")
+    latex_output = dataset.to_latex(index=False, column_format='|' + 'c|'*dataset.shape[1], float_format="%.3f")
     latex_output = latex_output.replace("\\toprule", "\\hline\n\\rowcolor{gray!50}")
     latex_output = latex_output.replace("\\midrule", "\\hline")
     latex_output = latex_output.replace("\\bottomrule", "\\hline")
     latex_output = '\\resizebox{\\textwidth}{!}{\n' + latex_output + '}'
+    #print(latex_output)
+    # Save tables to LaTeX files
+    with open(name, "w") as f:
+        f.write(latex_output)
+
+# generates latex table from pandas dataset            
+# e.g. generate_latex_table(results_table_log_reg, './tables/table1.tex')
+def generate_latex_table_thesis(dataset, name):
+    latex_output = dataset.to_latex(index=False, column_format='|' + 'c|'*dataset.shape[1], float_format="%.3f")
+    latex_output = latex_output.replace("\\toprule", "\\hline\n\\rowcolor{gray!50}")
+    latex_output = latex_output.replace("\\midrule", "\\hline")
+    latex_output = latex_output.replace("\\bottomrule", "\\hline")
+    #latex_output = '\\resizebox{\\textwidth}{!}{\n' + latex_output + '}'
     #print(latex_output)
     # Save tables to LaTeX files
     with open(name, "w") as f:
