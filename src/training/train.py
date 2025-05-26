@@ -30,7 +30,7 @@ def train(model, loss_fn, optim, train_ds, val_ds, num_epochs = 1, accum_scale =
             (loss / accum_scale).backward()
             
             train_loss_batch = train_loss_batch + loss.item()
-
+            loss = None
             conf_mtx = conf_mtx + conf_mtx_calc(pred.to('cpu'), mask.to('cpu')) # update confusion matrix
 
             # update metrics and step with optimizer at the end of each real batch

@@ -50,52 +50,76 @@ test_mask_dir = data_source + '/test_lab'
 
 train_dl, val_dl, train_dataset, val_dataset = load_data_deep_crack(train_image_dir, train_mask_dir, [0.8, 0.2])
 
-lr = 1e-3
-layers = []
-folder = "swin_6_1/"
+import gc
+# Define experiments: (layers_to_unfreeze, learning_rate)
+experiments = [
+    (['layers.3'], 1e-4),                       # B: Unfreeze layer4
+    (['layers.2', 'layers.3'], 1e-5),           # C: Unfreeze layers 3,4
+    (['layers.1', 'layers.2', 'layers.3'], 1e-5),# D: Unfreeze layers 2,3,4
+    (None, 1e-5),                                # E: Unfreeze all
+]
 
-model = UNetSwin(   img_channels = 3,
-                mask_channels = 1,
-                base_channel_size = 64)  
+for i, (layers, lr) in enumerate(experiments, start=1):
+    folder = f"swin_6_{i}/"
+    
+    print(f"=== Training experiment {i} | Unfreezing: {layers if layers is not None else 'ALL'} | LR: {lr} ===")
 
-loss = DiceLoss()
-model.freeze_encoder_layers()
-model.unfreeze_encoder_layers(layers)
-optimizer = optim.Adam(params = model.parameters(), lr = lr)
+    model = UNetSwin(
+        img_channels=3,
+        mask_channels=1,
+        base_channel_size=64
+    )
 
-dice_idcs = list(np.load('../saved_models/swin_2/dice_idcs.npy'))
-epoch_dice_idcs = list(np.load('../saved_models/swin_2/epoch_dice_idcs.npy'))
-val_dice_idcs = list(np.load('../saved_models/swin_2/val_dice_idcs.npy'))
-train_loss = list(np.load('../saved_models/swin_2/train_loss.npy'))
-val_loss = list(np.load('../saved_models/swin_2/val_loss.npy'))
-epoch_durations = list(np.load('../saved_models/swin_2/epoch_durations.npy'))
-best_model_wts = {}
-model.load_state_dict(torch.load('../saved_models/swin_2/model_state_epoch_100.pth', weights_only=True))
+    loss = DiceLoss()
+    model.freeze_encoder_layers()
+    model.unfreeze_encoder_layers(layers)
 
-log_training_result('../saved_models/training_log_2.csv', {
-    "timestamp": pd.Timestamp.now(),
-    "weights_file": folder,
-    "epochs": 100,
-    "learning_rate": lr,
-    "batch_size": 4,
-    "accum_scale": 4,
-    "comment": "Unfreze layer",
-    "augmentation": "rotate+randomCrop",
-    "unfrezed layers": layers
-})
+    optimizer = optim.Adam(params=model.parameters(), lr=lr)
 
+    # Load logs from previous training (optional)
+    dice_idcs = list(np.load('../saved_models/swin_2/dice_idcs.npy'))
+    epoch_dice_idcs = list(np.load('../saved_models/swin_2/epoch_dice_idcs.npy'))
+    val_dice_idcs = list(np.load('../saved_models/swin_2/val_dice_idcs.npy'))
+    train_loss = list(np.load('../saved_models/swin_2/train_loss.npy'))
+    val_loss = list(np.load('../saved_models/swin_2/val_loss.npy'))
+    epoch_durations = list(np.load('../saved_models/swin_2/epoch_durations.npy'))
+    best_model_wts = {}
 
-train(model, loss, optimizer, train_dl, val_dl, 
-        num_epochs = 150, 
-        accum_scale = 4, 
-        dice_idcs = dice_idcs, 
-        epoch_dice_idcs = epoch_dice_idcs, 
-        val_dice_idcs = val_dice_idcs, 
-        best_model_wts = best_model_wts, 
-        train_loss=train_loss, 
-        val_loss=val_loss, 
+    # Load pretrained weights
+    model.load_state_dict(torch.load('../saved_models/swin_2/model_state_epoch_100.pth', weights_only=True))
+
+    # Log config
+    log_training_result('../saved_models/training_log_2.csv', {
+        "timestamp": pd.Timestamp.now(),
+        "weights_file": folder,
+        "epochs": 100,
+        "learning_rate": lr,
+        "batch_size": 4,
+        "accum_scale": 4,
+        "comment": "Unfreeze layer",
+        "augmentation": "rotate+randomCrop",
+        "unfrezed layers": layers if layers is not None else "ALL"
+    })
+
+    # Train
+    train(
+        model, loss, optimizer,
+        train_dl, val_dl,
+        num_epochs=2,
+        accum_scale=4,
+        dice_idcs=dice_idcs,
+        epoch_dice_idcs=epoch_dice_idcs,
+        val_dice_idcs=val_dice_idcs,
+        best_model_wts=best_model_wts,
+        train_loss=train_loss,
+        val_loss=val_loss,
         epoch_durations=epoch_durations,
-        save_path='../saved_models/'+folder,
-        n_epoch_save=3)
-
-
+        save_path='../saved_models/' + folder,
+        n_epoch_save=5
+    )
+    del model
+    del optimizer
+    torch.cuda.empty_cache()
+    gc.collect()  # Python garbage collection
+    torch.cuda.reset_peak_memory_stats()
+    torch.cuda.empty_cache()
