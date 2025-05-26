@@ -50,44 +50,40 @@ test_mask_dir = data_source + '/test_lab'
 
 train_dl, val_dl, train_dataset, val_dataset = load_data_deep_crack(train_image_dir, train_mask_dir, [0.8, 0.2])
 
+lr = 1e-3
+layers = []
+folder = "swin_6_1/"
+
 model = UNetSwin(   img_channels = 3,
                 mask_channels = 1,
                 base_channel_size = 64)  
 
 loss = DiceLoss()
-optimizer = optim.Adam(params = model.parameters(), lr = 1e-3)
+model.freeze_encoder_layers()
+model.unfreeze_encoder_layers(layers)
+optimizer = optim.Adam(params = model.parameters(), lr = lr)
 
-dice_idcs = []
-epoch_dice_idcs = []
-val_dice_idcs = []
-train_loss = []
-val_loss = []
-epoch_durations = []
+dice_idcs = list(np.load('../saved_models/swin_2/dice_idcs.npy'))
+epoch_dice_idcs = list(np.load('../saved_models/swin_2/epoch_dice_idcs.npy'))
+val_dice_idcs = list(np.load('../saved_models/swin_2/val_dice_idcs.npy'))
+train_loss = list(np.load('../saved_models/swin_2/train_loss.npy'))
+val_loss = list(np.load('../saved_models/swin_2/val_loss.npy'))
+epoch_durations = list(np.load('../saved_models/swin_2/epoch_durations.npy'))
 best_model_wts = {}
-
-
-# SWIN 2
-
-# dice_idcs = list(np.load('../saved_models/swin_1/dice_idcs.npy'))
-# epoch_dice_idcs = list(np.load('../saved_models/swin_1/epoch_dice_idcs.npy'))
-# val_dice_idcs = list(np.load('../saved_models/swin_1/val_dice_idcs.npy'))
-# train_loss = list(np.load('../saved_models/swin_1/train_loss.npy'))
-# val_loss = list(np.load('../saved_models/swin_1/val_loss.npy'))
-# epoch_durations = list(np.load('../saved_models/swin_1/epoch_durations.npy'))
-# best_model_wts = {}
-# model.load_state_dict(torch.load('../saved_models/swin_1/model_state_epoch_99.pth', weights_only=True))
+model.load_state_dict(torch.load('../saved_models/swin_2/model_state_epoch_100.pth', weights_only=True))
 
 log_training_result('../saved_models/training_log_2.csv', {
     "timestamp": pd.Timestamp.now(),
-    "weights_file": "swin_5/",
-    "epochs": 150,
-    "learning_rate": 0.001,
+    "weights_file": folder,
+    "epochs": 100,
+    "learning_rate": lr,
     "batch_size": 4,
     "accum_scale": 4,
-    "comment": "Train test cut with no seed",
-    "augmentation": "rotate+randomCrop"
+    "comment": "Unfreze layer",
+    "augmentation": "rotate+randomCrop",
+    "unfrezed layers": layers
 })
-model.freeze_encoder_layers()
+
 
 train(model, loss, optimizer, train_dl, val_dl, 
         num_epochs = 150, 
@@ -99,7 +95,7 @@ train(model, loss, optimizer, train_dl, val_dl,
         train_loss=train_loss, 
         val_loss=val_loss, 
         epoch_durations=epoch_durations,
-        save_path='../saved_models/swin_5/',
+        save_path='../saved_models/'+folder,
         n_epoch_save=3)
 
 
