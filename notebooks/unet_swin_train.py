@@ -53,12 +53,11 @@ train_dl, val_dl, train_dataset, val_dataset = load_data_deep_crack(train_image_
 import gc
 # Define experiments: (layers_to_unfreeze, learning_rate)
 experiments = [
-    (['layers.3'], 1e-4),                       # B: Unfreeze layer4
-    (['layers.2', 'layers.3'], 1e-5),           # C: Unfreeze layers 3,4
-    (['layers.1', 'layers.2', 'layers.3'], 1e-5),# D: Unfreeze layers 2,3,4
+    (['layers_3'], 1e-4),                       # B: Unfreeze layer4
+    (['layers_2', 'layers_3'], 1e-5),           # C: Unfreeze layers 3,4
+    (['layers_1', 'layers_2', 'layers_3'], 1e-5),# D: Unfreeze layers 2,3,4
     (None, 1e-5),                                # E: Unfreeze all
 ]
-
 for i, (layers, lr) in enumerate(experiments, start=1):
     folder = f"swin_6_{i}/"
     
@@ -87,7 +86,7 @@ for i, (layers, lr) in enumerate(experiments, start=1):
 
     # Load pretrained weights
     model.load_state_dict(torch.load('../saved_models/swin_2/model_state_epoch_100.pth', weights_only=True))
-
+    model.save_trainable_layers_to_file('../saved_models/' + folder + 'trainable_layers.txt')
     # Log config
     log_training_result('../saved_models/training_log_2.csv', {
         "timestamp": pd.Timestamp.now(),
@@ -105,7 +104,7 @@ for i, (layers, lr) in enumerate(experiments, start=1):
     train(
         model, loss, optimizer,
         train_dl, val_dl,
-        num_epochs=2,
+        num_epochs=100,
         accum_scale=4,
         dice_idcs=dice_idcs,
         epoch_dice_idcs=epoch_dice_idcs,

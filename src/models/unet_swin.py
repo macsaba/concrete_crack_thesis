@@ -6,6 +6,7 @@ from torch.nn.functional import relu
 from torchvision import models
 import torch.nn as nn
 import timm
+import os
 
 
 class SwinEncoder(nn.Module):
@@ -157,36 +158,44 @@ class UNetSwin(nn.Module):
 
         return self.activation(x)
     
-    # freeze encoder layers for training
-    # if there are no specific layers, freze all
+
+    # Freeze encoder layers for training
+    # If there are no specific layers, freeze all
     def freeze_encoder_layers(self, layers_to_freeze=None):
         if layers_to_freeze is None:
             # Freeze all encoder parameters
             for param in self.encoder.parameters():
                 param.requires_grad = False
         else:
-            # Freeze only selected layers by name
-            for name, module in self.encoder.named_modules():
+            # Freeze only selected layers based on substring match
+            for name, param in self.encoder.named_parameters():
                 for freeze_name in layers_to_freeze:
-                    if name.startswith(freeze_name):
-                        for param in module.parameters():
-                            param.requires_grad = False
+                    if freeze_name in name:
+                        param.requires_grad = False
 
     # unfreeze encoder layers for training
-    # if there are no specific layers, unfreze all
+    # if there are no specific layers, unfreeze all
     def unfreeze_encoder_layers(self, layers_to_unfreeze=None):
         if layers_to_unfreeze is None:
             # Unfreeze all encoder parameters
             for param in self.encoder.parameters():
                 param.requires_grad = True
         else:
-            # Unfreeze only selected layers by name
-            for name, module in self.encoder.named_modules():
+            # Unfreeze only selected layers based on substring match
+            for name, param in self.encoder.named_parameters():
                 for unfreeze_name in layers_to_unfreeze:
-                    if name.startswith(unfreeze_name):
-                        for param in module.parameters():
-                            param.requires_grad = True
+                    if unfreeze_name in name:
+                        param.requires_grad = True
+
 
     def print_trainable_layers(self):
         for name, param in self.named_parameters():
             print(f"{name}: requires_grad={param.requires_grad}")
+
+    def save_trainable_layers_to_file(self, filepath="trainable_layers.txt"):
+        os.makedirs(os.path.dirname(filepath), exist_ok=True)  # Ensure the directory exists
+
+        with open(filepath, "w") as f:
+            for name, param in self.named_parameters():
+                if param.requires_grad:
+                    f.write(f"{name}: requires_grad={param.requires_grad}\n")
