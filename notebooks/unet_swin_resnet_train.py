@@ -48,7 +48,8 @@ train_mask_dir = data_source + '/train_lab'
 test_image_dir = data_source + '/test_img'
 test_mask_dir = data_source + '/test_lab'
 
-train_dl, val_dl, train_dataset, val_dataset = load_data_deep_crack(train_image_dir, train_mask_dir, [0.8, 0.2], limit_im_nr = 3)
+#train_dl, val_dl, train_dataset, val_dataset = load_data_deep_crack(train_image_dir, train_mask_dir, [0.8, 0.2], limit_im_nr=3)
+train_dl, val_dl, train_dataset, val_dataset = load_data_deep_crack(train_image_dir, train_mask_dir, [0.8, 0.2])
 
 import gc
 # Define experiments: (layers_to_unfreeze, learning_rate)
@@ -58,12 +59,13 @@ experiments = [
     (['encoder2', 'encoder3', 'encoder4'], 1e-5),# D: Unfreeze layers 2,3,4
     (None, 1e-5),                                # E: Unfreeze all
 ]
-nr_of_epochs = 2
-nr_of_epochs_save = 2
-load_from_folder = 'resnet_1'
+nr_of_epochs = 50
+nr_of_epochs_save = 5
+load_from_folders = ['resnet_unfreeze_1', 'resnet_unfreeze_2', 'resnet_unfreeze_3', 'resnet_unfreeze_4']
+#load_from_folder = 'resnet_1'
 for i, (layers, lr) in enumerate(experiments, start=1):
-    folder = f"resnet_unfreeze_{i}/"
-    
+    folder = f"resnet_unfreeze2_{i}/"
+    load_from_folder = load_from_folders[i-1]
     print(f"=== Training experiment {i} | Unfreezing: {layers if layers is not None else 'ALL'} | LR: {lr} ===")
 
     model = UNetResNet34(   img_channels = 3,
@@ -86,7 +88,7 @@ for i, (layers, lr) in enumerate(experiments, start=1):
     best_model_wts = {}
 
     # Load pretrained weights
-    model.load_state_dict(torch.load('../saved_models/'+load_from_folder+'/model_state_epoch_200.pth', weights_only=True))
+    model.load_state_dict(torch.load('../saved_models/'+load_from_folder+'/model_state_epoch_50.pth', weights_only=True))
 
     # Log config
     log_training_result('../saved_models/training_log_2.csv', {
@@ -132,12 +134,12 @@ experiments = [
     (['layers_1', 'layers_2', 'layers_3'], 1e-5),# D: Unfreeze layers 2,3,4
     (None, 1e-5),                                # E: Unfreeze all
 ]
-nr_of_epochs = 2
-nr_of_epochs_save = 2
-load_from_folder = 'swin_2'
+nr_of_epochs = 80
+nr_of_epochs_save = 5
+load_from_folders = ['swin_unfreeze_1', 'swin_unfreeze_2', 'swin_unfreeze_3', 'swin_unfreeze_4']
 for i, (layers, lr) in enumerate(experiments, start=1):
-    folder = f"swin_unfreeze_{i}/"
-    
+    folder = f"swin_unfreeze2_{i}/"
+    load_from_folder = load_from_folders[i-1]
     print(f"=== Training experiment {i} | Unfreezing: {layers if layers is not None else 'ALL'} | LR: {lr} ===")
 
     model = UNetSwin(
@@ -162,7 +164,7 @@ for i, (layers, lr) in enumerate(experiments, start=1):
     best_model_wts = {}
 
     # Load pretrained weights
-    model.load_state_dict(torch.load('../saved_models/'+load_from_folder+'/model_state_epoch_100.pth', weights_only=True))
+    model.load_state_dict(torch.load('../saved_models/'+load_from_folder+'/model_state_epoch_20.pth', weights_only=True))
 
     # Log config
     log_training_result('../saved_models/training_log_2.csv', {
