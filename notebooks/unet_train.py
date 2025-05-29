@@ -52,8 +52,8 @@ train_dl, val_dl, train_dataset, val_dataset = load_data_deep_crack(train_image_
 
 model = UNet(   img_channels = 3,
                 mask_channels = 1,
-                base_channel_size = 64,
-                depth=4)  
+                base_channel_size = 32,
+                depth=5)  
 loss = DiceLoss()
 optimizer = optim.Adam(params = model.parameters(), lr = 1e-3)
 
@@ -67,13 +67,13 @@ best_model_wts = {}
 
 log_training_result('../saved_models/training_log_2.csv', {
     "timestamp": pd.Timestamp.now(),
-    "weights_file": "unet_2/",
+    "weights_file": "unet_4/",
     "epochs": 100,
     "learning_rate": 0.001,
     "batch_size": 4,
     "accum_scale": 4,
-    "depth": 4,
-    "base_channel_size": 64,    
+    "depth": 5,
+    "base_channel_size": 32,    
     "comment": "",
     "augmentation": "rotate+randomCrop"
 })

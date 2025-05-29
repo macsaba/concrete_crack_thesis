@@ -72,3 +72,33 @@ def generate_latex_table_thesis(dataset, name):
     # Save tables to LaTeX files
     with open(name, "w") as f:
         f.write(latex_output)
+
+def generate_latex_table_thesis2(dataset, name):
+    # Copy to avoid modifying original
+    dataset = dataset.copy()
+
+    # Escape underscores in column names
+    dataset.columns = [str(col).replace('_', '\\_') for col in dataset.columns]
+
+    # Escape underscores in all string values in the dataset
+    for col in dataset.columns:
+        dataset[col] = dataset[col].apply(
+            lambda x: x.replace('_', '\\_') if isinstance(x, str) else x
+        )
+
+    # Generate LaTeX table
+    latex_output = dataset.to_latex(
+        index=False,
+        column_format='|' + 'c|' * dataset.shape[1],
+        float_format="%.3f",
+        escape=False  # Disable default escaping since we manually handle it
+    )
+
+    # Beautify table for thesis style
+    latex_output = latex_output.replace("\\toprule", "\\hline\n\\rowcolor{gray!50}")
+    latex_output = latex_output.replace("\\midrule", "\\hline")
+    latex_output = latex_output.replace("\\bottomrule", "\\hline")
+
+    # Write LaTeX code to file
+    with open(name, "w") as f:
+        f.write(latex_output)
