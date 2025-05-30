@@ -49,12 +49,12 @@ test_image_dir = data_source + '/test_img'
 test_mask_dir = data_source + '/test_lab'
 
 train_dl, val_dl, train_dataset, val_dataset = load_data_deep_crack(train_image_dir, train_mask_dir, [0.8, 0.2])
-
+#train_dl, val_dl, train_dataset, val_dataset = load_data_deep_crack(train_image_dir, train_mask_dir, [0.8, 0.2], limit_im_nr=3)
 
 
 lr = 0.01
 nr_of_epochs = 100
-nr_of_epochs_save = 5
+nr_of_epochs_save = 10
 
 model = UNet(   img_channels = 3,
                 mask_channels = 1,
@@ -105,11 +105,11 @@ gc.collect()  # Python garbage collection
 torch.cuda.reset_peak_memory_stats()
 torch.cuda.empty_cache()
 
-folder = 'unet_4_lr2e-4'
+folder = 'unet_4_lr2e-4/'
 load_from_folder = 'unet_4'
 lr = 2e-4
-nr_of_epochs = 100
-nr_of_epochs_save = 5
+nr_of_epochs = 300
+nr_of_epochs_save = 10
 model = UNet(   img_channels = 3,
                 mask_channels = 1,
                 base_channel_size = 32,

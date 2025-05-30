@@ -67,6 +67,7 @@ def generate_latex_table_thesis(dataset, name):
     latex_output = latex_output.replace("\\toprule", "\\hline\n\\rowcolor{gray!50}")
     latex_output = latex_output.replace("\\midrule", "\\hline")
     latex_output = latex_output.replace("\\bottomrule", "\\hline")
+    latex_output = latex_output.replace("_", "\_")
     #latex_output = '\\resizebox{\\textwidth}{!}{\n' + latex_output + '}'
     #print(latex_output)
     # Save tables to LaTeX files
@@ -102,3 +103,6 @@ def generate_latex_table_thesis2(dataset, name):
     # Write LaTeX code to file
     with open(name, "w") as f:
         f.write(latex_output)
+
+def count_trainable_parameters(model):
+    return sum(p.numel() for p in model.parameters() if p.requires_grad)
