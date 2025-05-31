@@ -15,7 +15,7 @@ from PIL import Image
 
 
 
-def load_data_deep_crack(image_dir, mask_dir, train_test_lengths, limit_im_nr = None):
+def load_data_deep_crack(image_dir, mask_dir, train_test_lengths, limit_im_nr = None, shuffle_train = True):
     # Get image list from the given train folder
     images_list = sorted(os.listdir(image_dir))
     # do random train test cut on this list
@@ -54,7 +54,7 @@ def load_data_deep_crack(image_dir, mask_dir, train_test_lengths, limit_im_nr = 
     )
 
 
-    train_dl = data.DataLoader(train_dataset, batch_size = 4, shuffle = True)
+    train_dl = data.DataLoader(train_dataset, batch_size = 4, shuffle = shuffle_train)
     val_dl = data.DataLoader(val_dataset, batch_size = 4, shuffle = False)
     return train_dl, val_dl, train_dataset, val_dataset
 

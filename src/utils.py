@@ -106,3 +106,6 @@ def generate_latex_table_thesis2(dataset, name):
 
 def count_trainable_parameters(model):
     return sum(p.numel() for p in model.parameters() if p.requires_grad)
+
+def to_4_significant_digits(x):
+    return format(x, ".4g")

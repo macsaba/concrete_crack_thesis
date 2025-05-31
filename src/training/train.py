@@ -13,6 +13,9 @@ def train(model, loss_fn, optim, train_ds, val_ds, num_epochs = 1, accum_scale =
     conf_mtx = torch.zeros((2, 2)) # initial count of confusion matrix entries is 0
     conf_mtx_calc = ConfusionMatrix(task = 'binary')
     best_val_loss = 1
+    if val_loss:
+        best_val_loss = min(val_loss)
+        
     for epoch_idx in range(num_epochs):
         epoch_start = time.time()
         model.train()
