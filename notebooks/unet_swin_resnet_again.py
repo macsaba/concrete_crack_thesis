@@ -54,9 +54,9 @@ train_dl, val_dl, train_dataset, val_dataset = load_data_deep_crack(train_image_
 import gc
 # Define experiments: (layers_to_unfreeze, learning_rate)
 experiments = [
-    (['encoder4'], 1e-4),                       # B: Unfreeze layer4
-    (['encoder3', 'encoder4'], 1e-5),           # C: Unfreeze layers 3,4
-    (['encoder2', 'encoder3', 'encoder4'], 1e-5),# D: Unfreeze layers 2,3,4
+    #(['encoder4'], 1e-4),                       # B: Unfreeze layer4
+    #(['encoder3', 'encoder4'], 1e-5),           # C: Unfreeze layers 3,4
+    #(['encoder2', 'encoder3', 'encoder4'], 1e-5),# D: Unfreeze layers 2,3,4
     (None, 1e-5),                                # E: Unfreeze all
 ]
 nr_of_epochs = 50
@@ -64,7 +64,8 @@ nr_of_epochs_save =5
 load_from_folders = ['resnet_1', 'resnet_1', 'resnet_1', 'resnet_1']
 #load_from_folder = 'resnet_1'
 for i, (layers, lr) in enumerate(experiments, start=1):
-    folder = f"resnet_unfreeze_again_{i}/"
+    #folder = f"resnet_unfreeze_again2_{i}/"
+    folder = f"resnet_unfreeze_again_4/"
     load_from_folder = load_from_folders[i-1]
     print(f"=== Training experiment {i} | Unfreezing: {layers if layers is not None else 'ALL'} | LR: {lr} ===")
 

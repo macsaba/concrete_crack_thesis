@@ -73,6 +73,7 @@ class DeepCrackDataset(data.Dataset):
             self.transform = transform
         else:
             self.transform = Compose(ToTensorV2())
+        self.transform_backup = self.transform
 
     def __len__(self):
         return len(self.images)
@@ -116,3 +117,9 @@ class DeepCrackDataset(data.Dataset):
         image = np.transpose(np.array(bundle['image']), (1, 2, 0))
         mask = np.transpose(np.array(bundle['mask']), (1, 2, 0))
         return image, mask
+    
+    def enable_transform(self):
+        self.transform = self.transform_backup
+    def disable_transform(self):
+        self.transform_backup = self.transform
+        self.transform = Compose(ToTensorV2())
