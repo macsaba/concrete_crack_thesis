@@ -51,7 +51,7 @@ class ConvBlock(nn.Module):
 
 
 # U-Net up-convolution block
-class UpConvBlock(nn.Module):
+class UpConvBlock_swin(nn.Module):
     def __init__(self, in_channels, skip_channels, out_channels):
         super().__init__()
 
@@ -108,7 +108,7 @@ class UNetSwin(nn.Module):
         up_out_channels = [512, 256, 128, 64, 32]
         up_skip_channels = [512, 256, 128, 64, 32]
 
-        self.up_blocks = nn.ModuleList(UpConvBlock(in_channels, skip_channel, out_channels) for in_channels, out_channels, skip_channel in zip (up_in_channels, up_out_channels, up_skip_channels))
+        self.up_blocks = nn.ModuleList(UpConvBlock_swin(in_channels, skip_channel, out_channels) for in_channels, out_channels, skip_channel in zip (up_in_channels, up_out_channels, up_skip_channels))
 
         # OUTPUT PART
         self.segmentation_layer = nn.Conv2d(in_channels = skip0_ch_size, out_channels = mask_channels, kernel_size = 1)

@@ -53,7 +53,7 @@ class ConvBlock(nn.Module):
         return x
 
 # U-Net up-convolution block
-class UpConvBlock(nn.Module):
+class UpConvBlock_resnet(nn.Module):
     def __init__(self, in_channels, skip_channels, out_channels):
         super().__init__()
 
@@ -105,7 +105,7 @@ class UNetResNet34(nn.Module):
         up_out_channels = [256, 128, 64, 48, 24]
         up_skip_channels = [256, 128, 64, 64, 24]
 
-        self.up_blocks = nn.ModuleList(UpConvBlock(in_channels, skip_channel, out_channels) for in_channels, out_channels, skip_channel in zip (up_in_channels, up_out_channels, up_skip_channels))
+        self.up_blocks = nn.ModuleList(UpConvBlock_resnet(in_channels, skip_channel, out_channels) for in_channels, out_channels, skip_channel in zip (up_in_channels, up_out_channels, up_skip_channels))
 
         # OUTPUT PART
         self.segmentation_layer = nn.Conv2d(in_channels = skip0_ch_size, out_channels = mask_channels, kernel_size = 1)
