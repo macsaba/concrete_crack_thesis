@@ -7,7 +7,7 @@ def log_training_result(csv_path, new_row):
     """
     Logs a training result to a CSV file using pandas.
 
-    Args:
+    Parameters:
         csv_path (str): Path to the CSV file.
         new_row (dict): Dictionary of training values to log. 
                         Keys are column names; values are the record values.
@@ -34,8 +34,18 @@ def log_training_result(csv_path, new_row):
     # Save it back to CSV
     df.to_csv(csv_path, index=False)
 
-# save the results of the training
 def save_model_files(files_path, model_weights, np_arrays, override = False):
+    """
+    Save the results of the training
+
+    Parameters:
+        files_path (str): Path to the files.
+        model_weights (dict): Model weights to save
+        np_arrays (dict):   Numpy arrays to save (e.g. train losses). 
+                            Keys are the file names, values are the np arrays.
+        override: If it is false, an already existing folder can not be override.
+    """
+
     if os.path.exists(files_path) and not override:
         raise FileExistsError('Files path already exists.')
     else:
@@ -47,34 +57,42 @@ def save_model_files(files_path, model_weights, np_arrays, override = False):
             value_np = np.array(value)
             np.save(files_path + key + '.npy', value_np)
 
-# generates latex table from pandas dataset            
-# e.g. generate_latex_table(results_table_log_reg, './tables/table1.tex')
+
 def generate_latex_table(dataset, name):
+    """
+    generates latex table from pandas dataset
+    .g. generate_latex_table(results_table_log_reg, './tables/table1.tex')
+    """
     latex_output = dataset.to_latex(index=False, column_format='|' + 'c|'*dataset.shape[1], float_format="%.3f")
     latex_output = latex_output.replace("\\toprule", "\\hline\n\\rowcolor{gray!50}")
     latex_output = latex_output.replace("\\midrule", "\\hline")
     latex_output = latex_output.replace("\\bottomrule", "\\hline")
     latex_output = '\\resizebox{\\textwidth}{!}{\n' + latex_output + '}'
-    #print(latex_output)
+
     # Save tables to LaTeX files
     with open(name, "w") as f:
         f.write(latex_output)
 
-# generates latex table from pandas dataset            
-# e.g. generate_latex_table(results_table_log_reg, './tables/table1.tex')
 def generate_latex_table_thesis(dataset, name):
+    """
+    generates latex table from pandas dataset in the format used in the thesis
+    e.g. generate_latex_table(results_table_log_reg, './tables/table1.tex')
+    """
     latex_output = dataset.to_latex(index=False, column_format='|' + 'c|'*dataset.shape[1], float_format="%.3f")
     latex_output = latex_output.replace("\\toprule", "\\hline\n\\rowcolor{gray!50}")
     latex_output = latex_output.replace("\\midrule", "\\hline")
     latex_output = latex_output.replace("\\bottomrule", "\\hline")
     latex_output = latex_output.replace("_", "\_")
-    #latex_output = '\\resizebox{\\textwidth}{!}{\n' + latex_output + '}'
-    #print(latex_output)
+
     # Save tables to LaTeX files
     with open(name, "w") as f:
         f.write(latex_output)
 
 def generate_latex_table_thesis2(dataset, name):
+    """
+    generates latex table from pandas dataset in the format used in the thesis
+    e.g. generate_latex_table(results_table_log_reg, './tables/table1.tex')
+    """
     # Copy to avoid modifying original
     dataset = dataset.copy()
 
@@ -105,7 +123,13 @@ def generate_latex_table_thesis2(dataset, name):
         f.write(latex_output)
 
 def count_trainable_parameters(model):
+    """
+    This function returns the number of trainable parameters in a PyTorch model.
+    """
     return sum(p.numel() for p in model.parameters() if p.requires_grad)
 
 def to_4_significant_digits(x):
+    """
+    Convert a number to 4 signifiant digits
+    """
     return format(x, ".4g")

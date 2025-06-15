@@ -1,5 +1,3 @@
-# This implementation is from the deep learning practice
-
 import torch
 from torch import nn
 from torch.nn.functional import relu
@@ -8,7 +6,7 @@ import torch.nn as nn
 import timm
 import os
 
-
+# pre-trained swin encoder
 class SwinEncoder(nn.Module):
     def __init__(self, model_name="swin_base_patch4_window7_224", pretrained=True):
         super().__init__()
@@ -26,15 +24,10 @@ class SwinEncoder(nn.Module):
         feats = self.backbone(x)
         # Transpose features from [B, H, W, C] to [B, C, H, W]
         feats = [f.permute(0, 3, 1, 2) for f in feats]
-        # Add a shallow input feature to mimic ResNet x0 (e.g., for shallow skip connection if needed)
-        #x0 = nn.functional.interpolate(x, scale_factor=0.5, mode='bilinear', align_corners=False)
-
-        # Map to same structure: [x0, x2, x3, x4, x5]
-        # Swin returns [x1, x2, x3, x4] corresponding to H/4, H/8, H/16, H/32
         return feats
 
 
-
+# U-Net convolution block
 class ConvBlock(nn.Module):
     def __init__(self, in_channels, out_channels):
         super().__init__()
@@ -55,15 +48,12 @@ class ConvBlock(nn.Module):
         x = relu(x)
 
         return x
-    
+
+
+# U-Net up-convolution block
 class UpConvBlock(nn.Module):
     def __init__(self, in_channels, skip_channels, out_channels):
         super().__init__()
-
-        # if in_channels != 2 * out_channels:
-            # raise ValueError(f'In channel size should be twice out channel size, but got {in_channels} and {out_channels}.')
-            # NOTE: technically it would be sufficient that the in channels of the convolutional block is equal to
-            #       the out channels of the up convolution + the channel size of the lateral skip connection
 
         self.upsample = nn.Upsample(scale_factor = 2)
         self.up_conv = nn.Conv2d(in_channels, out_channels, kernel_size = 2, stride = 1, padding = 'same')
@@ -82,24 +72,18 @@ class UpConvBlock(nn.Module):
         # perform convolutional operations
         x = self.conv_block(x)
         return x
-    
+
+# Complete model architecture
 class UNetSwin(nn.Module):
     def __init__(self,
                  img_channels = 1,
                  mask_channels = 1,
                  base_channel_size = 64
                  ):
-        # TODO: 
-        # normalizálás a resnet-nek megfelelően
-        # mi lesz a nem 2 hatvány képekkel
-        # batch norm-ok kikapcsolása érdemes lehet a kis batch méret miatt
-        
-        depth = 5
+        # TODO: implement automatic channel size calculations
         super().__init__()
 
-        #channel_sizes = [base_channel_size * 2 ** i for i in range(depth)]
-
-        # ZEROth SKIP PART, to get the uppest skip connection
+        # ZEROth SKIP PART, to get the top level skip connection
         skip0_ch_size = 32
         self.stem1 = nn.Sequential(
             nn.Conv2d(img_channels, skip0_ch_size, kernel_size=3, padding=1),
@@ -117,14 +101,9 @@ class UNetSwin(nn.Module):
         self.encoder = SwinEncoder()
         
         # CENTER PART
-        #self.bottom_block = ConvBlock(*channel_sizes[-2:])
         self.bottom_block = ConvBlock(1024, 1024)
 
         # DECODER PART
-        #up_in_channels = channel_sizes[-1:0:-1]
-        #up_out_channels = channel_sizes[-2::-1]
-        #print('Up in channels: ',up_in_channels)
-        #print('Up out channels: ',up_out_channels)
         up_in_channels = [1024, 512, 256, 128, 64]
         up_out_channels = [512, 256, 128, 64, 32]
         up_skip_channels = [512, 256, 128, 64, 32]

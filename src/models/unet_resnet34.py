@@ -1,11 +1,10 @@
-# This implementation is from the deep learning practice
-
 import torch
 from torch import nn
 from torch.nn.functional import relu
 from torchvision import models
 import os
 
+# pre-trained ResNet encoder
 class ResNetEncoder(nn.Module):
     def __init__(self, pretrained=True):
         super().__init__()
@@ -31,7 +30,7 @@ class ResNetEncoder(nn.Module):
         x5 = self.encoder4(x4)      # (B, 512, H/32, W/32)
         return [x0, x2, x3, x4, x5]  # Return skip features
 
-
+# U-Net convolution block
 class ConvBlock(nn.Module):
     def __init__(self, in_channels, out_channels):
         super().__init__()
@@ -52,15 +51,11 @@ class ConvBlock(nn.Module):
         x = relu(x)
 
         return x
-    
+
+# U-Net up-convolution block
 class UpConvBlock(nn.Module):
     def __init__(self, in_channels, skip_channels, out_channels):
         super().__init__()
-
-        # if in_channels != 2 * out_channels:
-            # raise ValueError(f'In channel size should be twice out channel size, but got {in_channels} and {out_channels}.')
-            # NOTE: technically it would be sufficient that the in channels of the convolutional block is equal to
-            #       the out channels of the up convolution + the channel size of the lateral skip connection
 
         self.upsample = nn.Upsample(scale_factor = 2)
         self.up_conv = nn.Conv2d(in_channels, out_channels, kernel_size = 2, stride = 1, padding = 'same')
@@ -79,22 +74,17 @@ class UpConvBlock(nn.Module):
         # perform convolutional operations
         x = self.conv_block(x)
         return x
-    
+
+# Complete model architecture
 class UNetResNet34(nn.Module):
     def __init__(self,
                  img_channels = 1,
                  mask_channels = 1,
                  base_channel_size = 64
                  ):
-        # TODO: 
-        # normalizálás a resnet-nek megfelelően
-        # mi lesz a nem 2 hatvány képekkel
-        # batch norm-ok kikapcsolása érdemes lehet a kis batch méret miatt
+        # TODO: implement automatic channel size calculations
         
-        depth = 5
         super().__init__()
-
-        #channel_sizes = [base_channel_size * 2 ** i for i in range(depth)]
 
         # ZEROth SKIP PART, to get the uppest skip connection
         skip0_ch_size = 24
@@ -108,14 +98,9 @@ class UNetResNet34(nn.Module):
         self.encoder = ResNetEncoder()
         
         # CENTER PART
-        #self.bottom_block = ConvBlock(*channel_sizes[-2:])
         self.bottom_block = ConvBlock(512, 512)
 
         # DECODER PART
-        #up_in_channels = channel_sizes[-1:0:-1]
-        #up_out_channels = channel_sizes[-2::-1]
-        #print('Up in channels: ',up_in_channels)
-        #print('Up out channels: ',up_out_channels)
         up_in_channels = [512, 256, 128, 64, 48]
         up_out_channels = [256, 128, 64, 48, 24]
         up_skip_channels = [256, 128, 64, 64, 24]

@@ -39,7 +39,7 @@ def dice_score(pred, target, epsilon=1e-6):
     return (2. * intersection + epsilon) / (union + epsilon)
 
 
-def evaluate_dice_index(model, dataset, batch_size=4, threshold=0.5, device=None):
+def evaluate_dice_index(model, dataset, batch_size=4, device=None):
     """
     Evaluate the Dice score of a PyTorch model on a given dataset.
     
@@ -47,7 +47,6 @@ def evaluate_dice_index(model, dataset, batch_size=4, threshold=0.5, device=None
         model: Trained PyTorch model
         dataset: Dataset returning (image, mask) pairs
         batch_size: Batch size for DataLoader
-        threshold: Threshold to binarize model outputs
         device: torch.device('cuda') or torch.device('cpu') or None
     
     Returns:

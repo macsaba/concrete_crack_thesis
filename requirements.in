@@ -12,3 +12,4 @@ seaborn
 requests
 torchmetrics
 albumentations
+nbformat

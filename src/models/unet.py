@@ -4,7 +4,7 @@ import torch
 from torch import nn
 from torch.nn.functional import relu
 
-
+# U-Net convolution block
 class ConvBlock(nn.Module):
     def __init__(self, in_channels, out_channels):
         super().__init__()
@@ -25,7 +25,8 @@ class ConvBlock(nn.Module):
         x = relu(x)
 
         return x
-    
+
+# U-Net up-convolution block 
 class UpConvBlock(nn.Module):
     def __init__(self, in_channels, out_channels):
         super().__init__()
@@ -54,7 +55,8 @@ class UpConvBlock(nn.Module):
         # perform convolutional operations
         x = self.conv_block(x)
         return x
-    
+
+# Complete U-Net model architecture
 class UNet(nn.Module):
     def __init__(self,
                  img_channels = 1,

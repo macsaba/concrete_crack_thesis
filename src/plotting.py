@@ -5,10 +5,11 @@ def plot_image_mask_grid(pairs, columns=3, scale = 6, path = None):
     """
     Plots image-mask pairs in a grid.
 
-    Args:
+    Parameters:
         pairs: List of (image, mask) tuples, where image and mask are numpy arrays in HWC format.
         columns: Number of image-mask columns per row.
         figsize: Size of each column in inches (width, height).
+        path: Optional path to save the figure.
     """
     rows = int(np.ceil(len(pairs) / columns))
 
@@ -60,7 +61,7 @@ def plot_image_mask_prediction_grid(triplets, columns=3, scale=6, path=None):
     """
     Plots image-mask-prediction triplets in a grid.
 
-    Args:
+    Parameters:
         triplets: List of (image, mask, prediction) tuples, where each element is a numpy array in HWC or HW format.
         columns: Number of image sets per row.
         scale: Scaling factor for figure size.
@@ -123,7 +124,7 @@ def plot_image_mask_prediction_grid_with_dice(triplets, columns=3, scale=6, path
     """
     Plots image-mask-prediction triplets with Dice score in a grid.
 
-    Args:
+    Parameters:
         triplets: List of (image, mask, prediction, dice_score) tuples.
         columns: Number of image sets per row.
         scale: Scaling factor for figure size.

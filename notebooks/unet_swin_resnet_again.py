@@ -54,18 +54,18 @@ train_dl, val_dl, train_dataset, val_dataset = load_data_deep_crack(train_image_
 import gc
 # Define experiments: (layers_to_unfreeze, learning_rate)
 experiments = [
-    #(['encoder4'], 1e-4),                       # B: Unfreeze layer4
-    #(['encoder3', 'encoder4'], 1e-5),           # C: Unfreeze layers 3,4
-    #(['encoder2', 'encoder3', 'encoder4'], 1e-5),# D: Unfreeze layers 2,3,4
+    (['encoder4'], 1e-4),                       # B: Unfreeze layer4
+    (['encoder3', 'encoder4'], 1e-5),           # C: Unfreeze layers 3,4
+    (['encoder2', 'encoder3', 'encoder4'], 1e-5),# D: Unfreeze layers 2,3,4
     (None, 1e-5),                                # E: Unfreeze all
 ]
 nr_of_epochs = 50
-nr_of_epochs_save =5
-load_from_folders = ['resnet_1', 'resnet_1', 'resnet_1', 'resnet_1']
+nr_of_epochs_save = 5
+load_from_folders = ['resnet_unfreeze_again_1', 'resnet_unfreeze_again_2', 'resnet_unfreeze_again_3', 'resnet_unfreeze_again_4']
 #load_from_folder = 'resnet_1'
 for i, (layers, lr) in enumerate(experiments, start=1):
-    #folder = f"resnet_unfreeze_again2_{i}/"
-    folder = f"resnet_unfreeze_again_4/"
+    folder = f"resnet_unfreeze_again2_{i}/"
+    # = f"resnet_unfreeze_again_4/"
     load_from_folder = load_from_folders[i-1]
     print(f"=== Training experiment {i} | Unfreezing: {layers if layers is not None else 'ALL'} | LR: {lr} ===")
 
@@ -135,3 +135,85 @@ for i, (layers, lr) in enumerate(experiments, start=1):
     torch.cuda.reset_peak_memory_stats()
     torch.cuda.empty_cache()
 
+# Define experiments: (layers_to_unfreeze, learning_rate)
+experiments = [
+    (['layers_3'], 1e-4),                       # B: Unfreeze layer4
+    (['layers_2', 'layers_3'], 1e-5),           # C: Unfreeze layers 3,4
+]
+
+nr_of_epochs = 100
+nr_of_epochs_save = 5
+load_from_folders = ['swin_2', 'swin_2']
+for i, (layers, lr) in enumerate(experiments, start=1):
+    folder = f"swin_unfreeze_again_{i}/"
+    load_from_folder = load_from_folders[i-1]
+    print(f"=== Training experiment {i} | Unfreezing: {layers if layers is not None else 'ALL'} | LR: {lr} ===")
+
+    model = UNetSwin(
+        img_channels=3,
+        mask_channels=1,
+        base_channel_size=64
+    )
+
+    loss = DiceLoss()
+    model.freeze_encoder_layers()
+    model.unfreeze_encoder_layers(layers)
+
+    optimizer = optim.Adam(params=model.parameters(), lr=lr)
+
+    # Load logs from previous training (optional)
+    dice_idcs = list(np.load('../saved_models/'+load_from_folder+'/dice_idcs.npy'))
+    epoch_dice_idcs = list(np.load('../saved_models/'+load_from_folder+'/epoch_dice_idcs.npy'))
+    val_dice_idcs = list(np.load('../saved_models/'+load_from_folder+'/val_dice_idcs.npy'))
+    train_loss = list(np.load('../saved_models/'+load_from_folder+'/train_loss.npy'))
+    val_loss = list(np.load('../saved_models/'+load_from_folder+'/val_loss.npy'))
+    epoch_durations = list(np.load('../saved_models/'+load_from_folder+'/epoch_durations.npy'))
+    best_model_wts = torch.load('../saved_models/'+load_from_folder+'/best_model_wts.pth')
+    min_index = val_loss.index(min(val_loss))
+
+    dice_idcs = dice_idcs[:min_index+1]
+    epoch_dice_idcs = epoch_dice_idcs[:min_index+1]
+    val_dice_idcs = val_dice_idcs[:min_index+1]
+    train_loss = train_loss[:min_index+1]
+    val_loss = val_loss[:min_index+1]
+    epoch_durations = epoch_durations[:min_index+1]
+
+    # Load pretrained weights
+    model.load_state_dict(torch.load('../saved_models/'+load_from_folder+'/best_model_wts.pth', weights_only=True))
+
+    # Log config
+    log_training_result('../saved_models/training_log_2.csv', {
+        "timestamp": pd.Timestamp.now(),
+        "weights_file": folder,
+        "epochs": nr_of_epochs,
+        "learning_rate": lr,
+        "batch_size": 4,
+        "accum_scale": 4,
+        "comment": "Unfreeze layer",
+        "augmentation": "rotate+randomCrop",
+        "unfrezed layers": layers if layers is not None else "ALL",
+        "started at": load_from_folder
+    })
+    model.save_trainable_layers_to_file('../saved_models/' + folder + 'trainable_layers.txt')
+    # Train
+    train(
+        model, loss, optimizer,
+        train_dl, val_dl,
+        num_epochs=nr_of_epochs,
+        accum_scale=4,
+        dice_idcs=dice_idcs,
+        epoch_dice_idcs=epoch_dice_idcs,
+        val_dice_idcs=val_dice_idcs,
+        best_model_wts=best_model_wts,
+        train_loss=train_loss,
+        val_loss=val_loss,
+        epoch_durations=epoch_durations,
+        save_path='../saved_models/' + folder,
+        n_epoch_save=nr_of_epochs_save
+    )
+    del model
+    del optimizer
+    torch.cuda.empty_cache()
+    gc.collect()  # Python garbage collection
+    torch.cuda.reset_peak_memory_stats()
+    torch.cuda.empty_cache()

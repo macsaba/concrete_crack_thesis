@@ -6,6 +6,27 @@ from utils import save_model_files
 import time
 
 def train(model, loss_fn, optim, train_ds, val_ds, num_epochs = 1, accum_scale = 1, dice_idcs = [], epoch_dice_idcs = [], val_dice_idcs = [], train_loss = [], val_loss = [], epoch_durations=[],  best_model_wts = {}, save_path = '', n_epoch_save = 5):
+    """
+    The training loop used for training. Implements logging and checkpoints also.
+    
+    Parameters:
+        model: PyTorch model to train
+        loss_fn: the loss function for training
+        optim: PyTorch optimizer for training
+        train_ds: Training dataset returning (image, mask) pairs
+        val_ds: Validation dataset returning (image, mask) pairs
+        num_epochs: number of epochs to train
+        accum_scale: sets, how many epochs to run in training, before step the model. Used for gradient accumulation
+        dice_idcs:
+        epoch_dice_idcs: list to store dice indices 
+        val_dice_idcs: list to store validation dice 
+        train_loss: list to store train losses
+        val_loss: list to store validation losses
+        epoch_durations: list to store epoch duration times in seconds
+        best_model_wts: stores the model weights corresponding to the model with the lowest validation score
+        save_path: path to save the results
+        n_epoch_save: results will be saved after every 'n_epoch_save' epochs run
+    """
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     model = model.to(device)
 
@@ -80,7 +101,7 @@ def train(model, loss_fn, optim, train_ds, val_ds, num_epochs = 1, accum_scale =
             best_model_wts.update(model.state_dict())  # copy new best weights
             best_val_loss = val_loss[-1]
         
-        # do checkpoints
+        # do checkpoints, save files
         if (((epoch_idx + 1) % n_epoch_save) == 0 or (epoch_idx+1) == num_epochs) and save_path:
             print('save files')
             save_model_files(save_path, {'model_state_epoch_'+str(epoch_idx + 1) : model.state_dict(), 'best_model_wts':best_model_wts},  {'dice_idcs':dice_idcs, 'epoch_dice_idcs':epoch_dice_idcs,'val_dice_idcs':val_dice_idcs,'train_loss':train_loss, 'val_loss':val_loss, 'epoch_durations':epoch_durations}, override=True)
@@ -109,6 +130,3 @@ def validate(model, loss_fn, optim, train_ds, val_ds, num_epochs = 1, accum_scal
     val_dice_idcs.append(dice_idx.item())
 
     return dice_idcs, epoch_dice_idcs, val_dice_idcs
-
-def test2(x):
-    x[1] = 3
